@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from random import choice
 
 import redis
@@ -123,49 +124,56 @@ def main() -> None:
 
     bot_token = os.environ['TELEGRAM_BOT_TOKEN']
 
-    updater = Updater(bot_token)
+    while True:
+        try:
+            updater = Updater(bot_token)
 
-    dispatcher = updater.dispatcher
+            dispatcher = updater.dispatcher
 
-    conv_handler = ConversationHandler(
+            conv_handler = ConversationHandler(
 
-        entry_points=[CommandHandler('start', start)],
+                entry_points=[CommandHandler('start', start)],
 
-        states={
-            NEW_QUESTION: [
-                MessageHandler(Filters.regex('^(Новый вопрос)$'),
-                               lambda update,
-                               context: handle_new_question_request(
-                                   update,
-                                   context,
-                                   redis_db)),
-            ],
-            ANSWER: [
-                MessageHandler(Filters.regex('^(Сдаться)$'),
-                               lambda update,
-                               context:
-                               handle_surrender(
-                                   update,
-                                   context,
-                                   redis_db)),
-                MessageHandler(Filters.text & ~Filters.command,
-                               lambda update,
-                               context:
-                               handle_solution_attempt(
-                                   update,
-                                   context,
-                                   redis_db)),
-            ],
-        },
+                states={
+                    NEW_QUESTION: [
+                        MessageHandler(Filters.regex('^(Новый вопрос)$'),
+                                       lambda update,
+                                       context:
+                                       handle_new_question_request(
+                                            update,
+                                            context,
+                                            redis_db)),
+                        ],
+                    ANSWER: [
+                        MessageHandler(Filters.regex('^(Сдаться)$'),
+                                       lambda update,
+                                       context:
+                                       handle_surrender(
+                                            update,
+                                            context,
+                                            redis_db)),
+                        MessageHandler(Filters.text & ~Filters.command,
+                                       lambda update,
+                                       context:
+                                       handle_solution_attempt(
+                                            update,
+                                            context,
+                                            redis_db)),
+                    ],
+                },
 
-        fallbacks=[CommandHandler('cancel', cancel)]
-    )
+                fallbacks=[CommandHandler('cancel', cancel)]
+            )
 
-    dispatcher.add_handler(conv_handler)
+            dispatcher.add_handler(conv_handler)
 
-    updater.start_polling()
+            updater.start_polling()
 
-    updater.idle()
+            updater.idle()
+
+        except Exception as e:
+            logger.error(f'ERROR {e}')
+            time.sleep(10)
 
 
 if __name__ == '__main__':

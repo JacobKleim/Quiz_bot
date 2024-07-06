@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from random import choice
 
 import redis
@@ -43,72 +44,79 @@ def main() -> None:
 
     vk_group_token = os.environ['VK_GROUP_TOKEN']
 
-    logger.info('Bot started')
-    vk_session = vk.VkApi(token=vk_group_token)
-    vk_api = vk_session.get_api()
-    longpoll = VkLongPoll(vk_session)
-    keyboard = VkKeyboard(one_time=True)
+    while True:
+        try:
+            logger.info('Bot started')
+            vk_session = vk.VkApi(token=vk_group_token)
+            vk_api = vk_session.get_api()
+            longpoll = VkLongPoll(vk_session)
+            keyboard = VkKeyboard(one_time=True)
 
-    keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
+            keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
 
-    keyboard.add_line()
-    keyboard.add_button('Сдаться', color=VkKeyboardColor.POSITIVE)
+            keyboard.add_line()
+            keyboard.add_button('Сдаться', color=VkKeyboardColor.POSITIVE)
 
-    keyboard.add_line()
-    keyboard.add_button('Мой счет', color=VkKeyboardColor.NEGATIVE)
+            keyboard.add_line()
+            keyboard.add_button('Мой счет', color=VkKeyboardColor.NEGATIVE)
 
-    for event in longpoll.listen():
-        if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            user_id = event.user_id
+            for event in longpoll.listen():
+                if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                    user_id = event.user_id
 
-            if event.text == 'Новый вопрос':
-                question = choice(list(quiz.keys()))
-                redis_db.set(user_id, question)
-                answer = quiz.get(question)
-                correct_answer = answer.split(
-                    '.')[0].split('(')[0].strip().lower()
+                    if event.text == 'Новый вопрос':
+                        question = choice(list(quiz.keys()))
+                        redis_db.set(user_id, question)
+                        answer = quiz.get(question)
+                        correct_answer = answer.split(
+                            '.')[0].split('(')[0].strip().lower()
 
-                vk_api.messages.send(
-                    user_id=user_id,
-                    random_id=get_random_id(),
-                    keyboard=keyboard.get_keyboard(),
-                    message=f'Вопрос: {question}'
-                )
-
-            elif event.text == 'Сдаться':
-                question = redis_db.get(user_id)
-                answer = quiz.get(question, 'Неизвестный вопрос.')
-                vk_api.messages.send(
-                    user_id=user_id,
-                    random_id=get_random_id(),
-                    keyboard=keyboard.get_keyboard(),
-                    message=f'Ответ: {answer}'
-                )
-            else:
-                question = redis_db.get(user_id)
-                if question:
-                    answer = quiz.get(question)
-
-                    correct_answer = answer.split(
-                        '.')[0].split('(')[0].strip().lower()
-
-                    user_answer = event.text.strip().lower()
-
-                    if user_answer == correct_answer:
                         vk_api.messages.send(
                             user_id=user_id,
                             random_id=get_random_id(),
                             keyboard=keyboard.get_keyboard(),
-                            message='Правильно! Поздравляю!'
-                            'Для следующего вопроса нажми «Новый вопрос»'
+                            message=f'Вопрос: {question}'
+                        )
+
+                    elif event.text == 'Сдаться':
+                        question = redis_db.get(user_id)
+                        answer = quiz.get(question, 'Неизвестный вопрос.')
+                        vk_api.messages.send(
+                            user_id=user_id,
+                            random_id=get_random_id(),
+                            keyboard=keyboard.get_keyboard(),
+                            message=f'Ответ: {answer}'
                         )
                     else:
-                        vk_api.messages.send(
-                            user_id=user_id,
-                            random_id=get_random_id(),
-                            keyboard=keyboard.get_keyboard(),
-                            message='Неправильно… Попробуешь ещё раз?'
-                        )
+                        question = redis_db.get(user_id)
+                        if question:
+                            answer = quiz.get(question)
+
+                            correct_answer = answer.split(
+                                '.')[0].split('(')[0].strip().lower()
+
+                            user_answer = event.text.strip().lower()
+
+                            if user_answer == correct_answer:
+                                vk_api.messages.send(
+                                    user_id=user_id,
+                                    random_id=get_random_id(),
+                                    keyboard=keyboard.get_keyboard(),
+                                    message='Правильно! Поздравляю!'
+                                    'Для следующего вопроса нажми'
+                                    '«Новый вопрос»'
+                                )
+                            else:
+                                vk_api.messages.send(
+                                    user_id=user_id,
+                                    random_id=get_random_id(),
+                                    keyboard=keyboard.get_keyboard(),
+                                    message='Неправильно…'
+                                    'Попробуешь ещё раз?'
+                                )
+        except Exception as e:
+            logger.error(f'ERROR {e}')
+            time.sleep(10)
 
 
 if __name__ == '__main__':
