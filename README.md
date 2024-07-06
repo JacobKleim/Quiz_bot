@@ -5,7 +5,22 @@ This bot allows you to take a quiz in vk bot and tg bot. interactive keyboard is
 ## Environment variables
   Create a .env file with parameters:
    ```
-   TELEGRAM_BOT_TOKEN=your secret token
+   TELEGRAM_BOT_TOKEN=secret token
+   ```
+   ```
+   VK_GROUP_TOKEN=secret token
+   ```
+   ```
+   REDIS_HOST=db host
+   ```
+   ```
+   REDIS_PORT=db port
+   ```
+   ```
+   REDIS_PASSWORD=db password
+   ```
+     ```
+   REDIS_DB=db number
    ```
 
 ## Environment      
@@ -13,8 +28,13 @@ This bot allows you to take a quiz in vk bot and tg bot. interactive keyboard is
    ```
    python -m venv venv
    ```
+   For Windows:
    ```bash
    source venv/Scripts/activate
+   ```
+   For Linux:
+   ```bash
+   source venv/bin/activate
    ```
 
 ## Requirements

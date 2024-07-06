@@ -75,6 +75,9 @@ def handle_solution_attempt(update: Update,
 
         return NEW_QUESTION
 
+    elif text == 'Новый вопрос':
+        return handle_new_question_request(update, context, redis_db)
+
     else:
         context.bot.send_message(
             chat_id=chat_id,
