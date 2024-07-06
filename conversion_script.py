@@ -1,6 +1,8 @@
 import json
 import os
 
+import argparse
+
 
 def get_question_answer(file_path, quiz):
 
@@ -37,9 +39,16 @@ def save_quiz_to_json(quiz, file_path):
 
 def main() -> None:
 
+    parser = argparse.ArgumentParser(
+        description='A script to extract questions and answers from text files'
+                    'and save them in JSON format.')
+    parser.add_argument('-f', '--folder_path', default='files',
+                        help='Path to folder with .txt files')
+    args = parser.parse_args()
+
     quiz = {}
 
-    folder_path = 'files'
+    folder_path = args.folder_path
 
     files = os.listdir(folder_path)
 
