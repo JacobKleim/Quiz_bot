@@ -23,3 +23,11 @@
    ```
    pip install -r requirements.txt
    ```
+
+## Run
+   ```
+   python tg_bot.py
+   ```
+   ```
+   python vk_bot.py
+   ```
