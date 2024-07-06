@@ -2,6 +2,19 @@
 
 This bot allows you to take a quiz in vk bot and tg bot. interactive keyboard is used for interaction. the code contains a script to     extract the question-answer from a text file and convert it to a jason format file.
 
+## Redis configuration
+
+The bot uses [Redis](https://redis.io/) to store state and progress information about the test execution for each user. Redis is an in-memory data structure store used as a distributed key-value database, cache, and message broker. To use [Redis](https://redis.io/), you need to register and retrieve your database data.
+
+## Links to bots(example):
+  ```
+  https://t.me/assistant_peoples_bot
+  ```
+  ```
+  https://vk.com/invite/Z4uEmZX
+  ```
+
+
 ## Environment variables
   Create a .env file with parameters:
    ```
