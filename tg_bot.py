@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import time
@@ -10,17 +9,10 @@ from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (CallbackContext, CommandHandler, ConversationHandler,
                           Filters, MessageHandler, Updater)
 
+from conversion_script import load_from_json
+
 
 logger = logging.getLogger('TG_BOT')
-
-
-def load_from_json(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        return json.load(file)
-
-
-quiz_file_path = "quiz.json"
-quiz = load_from_json(quiz_file_path)
 
 
 NEW_QUESTION, ANSWER, MY_SCORE = range(3)
@@ -43,7 +35,8 @@ def start(update: Update, context: CallbackContext) -> None:
 
 def handle_new_question_request(update: Update,
                                 context: CallbackContext,
-                                redis_db) -> None:
+                                redis_db,
+                                quiz) -> None:
 
     question = choice(list(quiz.keys()))
     chat_id = update.effective_chat.id
@@ -57,7 +50,8 @@ def handle_new_question_request(update: Update,
 
 def handle_solution_attempt(update: Update,
                             context: CallbackContext,
-                            redis_db) -> None:
+                            redis_db,
+                            quiz) -> None:
 
     text = update.message.text
     chat_id = update.effective_chat.id
@@ -88,7 +82,8 @@ def handle_solution_attempt(update: Update,
 
 def handle_surrender(update: Update,
                      context: CallbackContext,
-                     redis_db) -> int:
+                     redis_db,
+                     quiz) -> int:
 
     chat_id = update.effective_chat.id
     question = redis_db.get(chat_id)
@@ -127,6 +122,9 @@ def main() -> None:
 
     bot_token = os.environ['TELEGRAM_BOT_TOKEN']
 
+    quiz_file_path = "quiz.json"
+    quiz = load_from_json(quiz_file_path)
+
     while True:
         try:
             updater = Updater(bot_token)
@@ -145,7 +143,8 @@ def main() -> None:
                                        handle_new_question_request(
                                             update,
                                             context,
-                                            redis_db)),
+                                            redis_db,
+                                            quiz)),
                         ],
                     ANSWER: [
                         MessageHandler(Filters.regex('^(Сдаться)$'),
@@ -154,14 +153,16 @@ def main() -> None:
                                        handle_surrender(
                                             update,
                                             context,
-                                            redis_db)),
+                                            redis_db,
+                                            quiz)),
                         MessageHandler(Filters.text & ~Filters.command,
                                        lambda update,
                                        context:
                                        handle_solution_attempt(
                                             update,
                                             context,
-                                            redis_db)),
+                                            redis_db,
+                                            quiz)),
                     ],
                 },
 

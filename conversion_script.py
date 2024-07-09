@@ -4,10 +4,11 @@ import os
 import argparse
 
 
-def get_question_answer(file_path, quiz):
+def get_question_answer(file_path):
+    question_answer = {}
 
-    with open(file_path, "r", encoding='KOI8-R') as my_file:
-        file_content = my_file.read()
+    with open(file_path, "r", encoding='KOI8-R') as file:
+        file_content = file.read()
 
     parsed_file_content = file_content.split('\n\n\n')
 
@@ -29,12 +30,19 @@ def get_question_answer(file_path, quiz):
             else:
                 continue
 
-            quiz[question] = answer
+            question_answer[question] = answer
+
+    return question_answer
 
 
 def save_quiz_to_json(quiz, file_path):
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(quiz, file, ensure_ascii=False, indent=4)
+
+
+def load_from_json(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return json.load(file)
 
 
 def main() -> None:
@@ -54,7 +62,8 @@ def main() -> None:
 
     for file in files:
         file_path = os.path.join(folder_path, file)
-        get_question_answer(file_path, quiz)
+        question_answer = get_question_answer(file_path)
+        quiz.update(question_answer)
 
     converted_file_path = 'quiz.json'
     save_quiz_to_json(quiz, converted_file_path)

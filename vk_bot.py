@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import time
@@ -11,17 +10,9 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkEventType, VkLongPoll
 from vk_api.utils import get_random_id
 
+from conversion_script import load_from_json
 
 logger = logging.getLogger('VK_BOT')
-
-
-def load_from_json(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        return json.load(file)
-
-
-quiz_file_path = "quiz.json"
-quiz = load_from_json(quiz_file_path)
 
 
 def main() -> None:
@@ -43,6 +34,9 @@ def main() -> None:
                            decode_responses=True)
 
     vk_group_token = os.environ['VK_GROUP_TOKEN']
+
+    quiz_file_path = "quiz.json"
+    quiz = load_from_json(quiz_file_path)
 
     while True:
         try:
